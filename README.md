@@ -58,7 +58,7 @@ Run `test_train_nn()` and check convergence.
 
 	Layer2: Z2
 
-			z1			 output layer neuron weights
+			z1             output layer neuron weights
 	------------------     ----------------------
 
 	| z11 z12 z13 z14 |   | w11 w21 w31 |   | y11 y12 y13 |   | 1 0 0 |    setosa
