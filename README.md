@@ -11,11 +11,11 @@ To grasp every aspect of the computing behind a nn, i developed every single lin
 2. Test the neural network with a single data point and an arbitrary target value.
 
 ```
-	test input:
-		x = [[1, 2, 3]];
+test input:
+	x = [[1, 2, 3]];
 
-	test target:
-		y = [[0.25, 0.75]];
+test target:
+	y = [[0.25, 0.75]];
 ```
 
 Since a neural network is an universal approximator, it should compute some weights to produce this output respect to input.
