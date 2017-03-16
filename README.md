@@ -49,9 +49,9 @@ Run `test_train_nn()` and check convergence.
  	point2 | x21 x22 x23 x24 |   | w12  w22  w32  w42 |   | z21 z22 z23 z24 |
 	point3 | x31 x32 x33 x34 | ⊗ | w13  w23  w33  w43 | = | z31 z32 z33 z34 |
 	point4 | x41 x42 x43 x44 |   | w14  w24  w34  w44 |   | z41 z42 z43 z44 |
-	  .  														    .
-	  .  															.
-	  .  															.
+	  .                                                             .
+	  .                                                             .
+	  .                                                             .
 
 	z11 = w11*x1 + w12*x2 + ... + b1
 	a1 = activation_function(xW + b)
