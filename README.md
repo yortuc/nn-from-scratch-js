@@ -58,7 +58,7 @@ Run `test_train_nn()` and check convergence.
 
 	Layer2: Z2
 
-			z1             output layer neuron weights
+	        z1             output layer neuron weights
 	------------------     ----------------------
 
 	| z11 z12 z13 z14 |   | w11 w21 w31 |   | y11 y12 y13 |   | 1 0 0 |    setosa
@@ -79,12 +79,12 @@ Run `test_train_nn()` and check convergence.
 As James McCaffrey stated beautifuly, backpropagation flows like this: 
 
 ```
-	loop until some exit condition
-	 compute output values
-	 compute gradients of output nodes
-	 compute gradients of hidden layer nodes
-	 update all weights and bias values
-	end loop
+loop until some exit condition
+	compute output values
+	compute gradients of output nodes
+	compute gradients of hidden layer nodes
+	update all weights and bias values
+end loop
 ```
 
 We have 2 gradients for output and hidden layers.
@@ -94,7 +94,7 @@ desired value, multiplied by the calculus derivative of the activation function 
 layer.
 
 ```js
-	const grad_output = comp_prod(diff_output, deriv_a2)
+const grad_output = comp_prod(diff_output, deriv_a2)
 ```
 
 **Hidden layer**: Computing the values of the hidden node gradients uses the values of the output node
@@ -103,9 +103,9 @@ of the products of "downstream" output gradients and associated
 hidden-to-output weights. 
 
 ```js
-	const sum = had_product(grad_output, mat_transpose(w2));
-	const deriv_a1 = hyperbolic_tangent_grad(a1);
-	const grad_hidden = comp_prod(sum, deriv_a1);
+const sum = had_product(grad_output, mat_transpose(w2));
+const deriv_a1 = hyperbolic_tangent_grad(a1);
+const grad_hidden = comp_prod(sum, deriv_a1);
 ```
 
 ### Training
@@ -126,11 +126,11 @@ In my experiments, i also experienced the shuffle effect.
 ### Result
 
 ```
-	------- accuracy --------
-	72 correct  3 wrong
-	%  96
-	------ validation -------
-	error:  0.10099364087457778
-	34 correct  3 wrong
-	%  91.89189189189189
+------- accuracy --------
+72 correct  3 wrong
+%  96
+------ validation -------
+error:  0.10099364087457778
+34 correct  3 wrong
+%  91.89189189189189
 ```
