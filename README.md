@@ -1,7 +1,7 @@
 # Neural network from scratch with js
 
 ### Why?
-Implementing a very simple but fully functional nn is not that straight forward at first time easy imho. 
+Implementing a very simple but fully functional nn is not that straight forward at first time, imho. 
 To grasp every aspect of the computing behind a nn, i developed every single line of code, including mathematical functions like matrix multiplication, softmax and so on.   
 
 ### Testing
