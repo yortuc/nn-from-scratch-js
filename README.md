@@ -28,10 +28,10 @@ Run `test_train_nn()` and check convergence.
 	features	
 	  x           h           y      output
 	-----       -----      ------   --------
-	x1          n1.1  
-	x2          n1.2        n2.1        
+	x1          n1.1 
+	x2          n1.2        n2.1 
 	x3          n1.3        n2.2        S
-	x4          n1.4        n2.3			  							
+	x4          n1.4        n2.3
     -----       -----      -------  ---------
 
 - first layer has 4 neurons (iris dataset has 4 features for input points: (sepal length, sepal width, petal length, and petal width)
