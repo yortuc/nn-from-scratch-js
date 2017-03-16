@@ -42,7 +42,7 @@ Run `test_train_nn()` and check convergence.
 
 	Layer1: Z1
 
-	        data points			  hidden layer neuron weights
+	        data points           hidden layer neuron weights
 	--------------------------    ----------------------
 
 	point1 | x11 x12 x13 x14 |   | w11  w21  w31  w41 |   | z11 z12 z13 z14 |
