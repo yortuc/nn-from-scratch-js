@@ -20,8 +20,7 @@ test target:
 
 Since a neural network is an universal approximator, it should compute some weights to produce this output respect to input.
 
-Run `test_train_nn()` and check convergence.
-
+Run `test_train_nn()` and check the convergence.
 
 ### Iris Classification Problem
 
@@ -71,8 +70,10 @@ Run `test_train_nn()` and check convergence.
 
 	Layer2 a2 is actually the output of the neural network.
 
-### Activation functions 
-`tanh` for hidden layer and `softmax` for output layer is used.
+### Properties of nn
+**Parameter initialization**: random initialization btw `0` and `1`
+**Activation functions**: `tanh` for hidden layer and `softmax` for output layer
+**Error function**: simple mean squared error
 
 ### Backpropagation
 
@@ -80,10 +81,10 @@ As James McCaffrey stated beautifuly, backpropagation flows like this:
 
 ```
 loop until some exit condition
-	compute output values
-	compute gradients of output nodes
-	compute gradients of hidden layer nodes
-	update all weights and bias values
+  compute output values
+  compute gradients of output nodes
+  compute gradients of hidden layer nodes
+  update all weights and bias values
 end loop
 ```
 
@@ -123,14 +124,32 @@ incremental training seems more robust and converges faster.
 Using incremental training, it's important to make sure that the neural netwok accesses data randomly in every loop.
 In my experiments, i also experienced the shuffle effect.
 
-### Result
+## Results of Iris classification
+
+**Goal:** Train with `iris_training.dat` which has 75 data points. Stop training if mean square error on training data drops below `0.04`. 
+
+**1. Batch training:** this seems to be more sensitive to initial weights. Sometimes sattles at the local minima and can't improve results anymore.
+Error dropped below 0.04 at epoch 1768.
 
 ```
 ------- accuracy --------
 72 correct  3 wrong
 %  96
 ------ validation -------
-error:  0.10099364087457778
-34 correct  3 wrong
-%  91.89189189189189
+36 correct  1 wrong
+%  97.29729729729729
 ```
+
+**2. Incremental training:** Much more robust than batch training. Almost newer settles at local minima. 
+Error dropped below 0.04 at epoch 464. But overfitting can be seen at the results.
+
+```
+------- accuracy --------
+74 correct  1 wrong
+%  98.66666666666667
+------ validation -------
+35 correct  2 wrong
+%  94.5945945945946
+```
+
+**3. Mini batch training:** 

@@ -135,14 +135,10 @@ function mat_mul_with_scalar(m, s){
 
 /************************ READ INPUT *********************************/
 
-function read_input_file(callback, filename="./data/iris_training.dat") {
-	// Read the file and print its contents.
+function read_file(filename) {
 	var fs = require('fs');
-	
-	fs.readFile(filename, 'utf8', function(err, data) {
-	  if (err) throw err;
-	  callback(data);
-	});
+	var contents = fs.readFileSync(filename, 'utf8');
+	return contents;
 }
 
 // return {x:[[]], y:[[]]}
@@ -220,15 +216,16 @@ function init_weights(li_count, lh_count, lo_count){
 	// init W1 matrix
 	// x:input layer neuron count, y: hidden layer neuron count
 
-	const max = 0.05;
-	const min = -0.05;
-	const computeParam = ()=> Math.random(); //(max-min)*Math.random() + min;
+	const l1 = 1/Math.sqrt(li_count);
+	const l2 = 1/Math.sqrt(lh_count);
+
+	const computeParam = (min, max)=> Math.random(); // (max-min)*Math.random() + min; //
 
 	const w1 = [];
 	for(var i=0; i<li_count; i++){
 		let row = [];
 		for(var j=0; j<lh_count; j++){
-			row.push(computeParam());
+			row.push(computeParam(-l1,l1));
 		}
 		w1.push(row);
 	}
@@ -239,19 +236,19 @@ function init_weights(li_count, lh_count, lo_count){
 	for(var i=0; i<lh_count; i++){
 		let row = [];
 		for(var j=0; j<lo_count; j++){
-			row.push(computeParam());
+			row.push(computeParam(-l2,l2));
 		}
 		w2.push(row);
 	}
 
 	const b1 = [];
 	for(var j=0; j<lh_count; j++){
-		b1.push(computeParam());
+		b1.push(computeParam(-l1,l1));
 	}
 
 	const b2 = [];
 	for(var j=0; j<lo_count; j++){
-		b2.push(computeParam());
+		b2.push(computeParam(-l2,l2));
 	}
 
 	return {w1, b1, w2, b2};
@@ -345,6 +342,13 @@ function feed_forward(x, w1, b1, w2, b2, y) {
 
 var error_history = [];
 
+function nn_error(y_pred, y) {
+	const diff_output = y.map((row,i)=> row.map((col,j)=> y[i][j] - y_pred[i][j]));
+	const error = diff_output.map(row=> row.reduce((prev, cur)=> prev + Math.pow(cur,2), 0));
+	const mse = (error.reduce((p,c)=>c+p,0))/y.length;
+	return mse;
+}
+
 function back_prop(w2, a1, y_pred, y){
 	// grad w2
 	const diff_output = y.map((row,i)=> row.map((col,j)=> y[i][j] - y_pred[i][j]));	// diff = y - y_pred
@@ -371,10 +375,11 @@ function back_prop(w2, a1, y_pred, y){
 	// cost (mean squares)
 	const error = diff_output.map(row=> row.reduce((prev, cur)=> prev + Math.pow(cur,2), 0));
 	const mse = (error.reduce((p,c)=>c+p,0))/y.length;
-	console.log("error: ", mse);
-	error_history.push(mse);
 
-	return {d1: grad_hidden, db1: grad_b1, d2: grad_output, db2: grad_b2, error};
+	//console.log("error: ", mse);
+	// error_history.push(mse);
+
+	return {d1: grad_hidden, db1: grad_b1, d2: grad_output, db2: grad_b2, error: mse};
 }
 
 function update_weights(x, w1, b1, a1, d1, db1, w2, b2, a2, d2, db2, learningRate=0.05, momentum=0.01){
@@ -398,16 +403,10 @@ function update_weights(x, w1, b1, a1, d1, db1, w2, b2, a2, d2, db2, learningRat
 
 function iterate_training(x, w1, b1, w2, b2, y, it_count, it_max){
 	const {a1, a2} = feed_forward(x, w1, b1, w2, b2, y);
-	const {d1, db1, d2, db2} = back_prop(w2, a1, a2, y);
+	const {d1, db1, d2, db2, error} = back_prop(w2, a1, a2, y);
 
 	const updated_weights = update_weights(x, w1, b1, a1, d1, db1, w2, b2, a2, d2, db2);
-
-	if(it_count < it_max) {
-		iterate_training(x, updated_weights.w1, updated_weights.b1, updated_weights.w2, updated_weights.b2, y, it_count+1, it_max);
-	}
-	else{
-		end_training(w1, b1, w2, b2, a2, y);
-	}
+	return {w1: updated_weights.w1, b1: updated_weights.b1, w2: updated_weights.w2, b2:updated_weights.b2, a2, error};
 }
 
 function iterate_training_incremental(x, w1, b1, w2, b2, y){
@@ -438,10 +437,7 @@ function end_training(w1, b1, w2, b2, a2, y) {
 	console.log(ret);
 	console.log("------- accuracy --------");
 	console.log("% ", compute_accuracy(a2, y));
-	console.log("------ validation -------");
-	compute_validation_error(w1,b1,w2,b2);
 }
-
 
 function compute_accuracy(a2, y) {
 	var numCorrect = 0,
@@ -465,14 +461,13 @@ function compute_accuracy(a2, y) {
 
 function compute_validation_error(w1,b1,w2,b2){
 	// load valdation data
-	read_input_file((rawData)=> {
-		const data = parse_input_data(rawData);
-		const {a2} = iterate_training_incremental(data.x, w1, b1, w2, b2, data.y);
-
-		console.log("% ", compute_accuracy(a2, data.y));
-
-	}, "./data/iris_validation.dat");
+	const rawData = read_file('./data/iris_validation.dat');
+	const data = parse_input_data(rawData);
+	const {a2} = iterate_training_incremental(data.x, w1, b1, w2, b2, data.y);
+	console.log("% ", compute_accuracy(a2, data.y));
 }
+
+/************* examples **************/
 
 // test_prod_vec();
 // test_had_product();
@@ -489,57 +484,89 @@ function test_train_nn(){
 	const x = [[1,2,3]];		// input
 	const y = [[0.25, 0.75]];	// target
 	var {w1, b1, w2, b2} = init_weights(3,4,2);
+	var updated_weights, a2;
 
-	iterate_training(x, w1, b1, w2, b2, y, 0, 10);
+	for(var i=0; i<100; i++){
+		updated_weights = iterate_training(x, w1, b1, w2, b2, y);
+		w1 = updated_weights.w1;
+		b1 = updated_weights.b1;
+		w2 = updated_weights.w2;
+		b2 = updated_weights.b2;
+		a2 = updated_weights.a2;
+		error = updated_weights.error;
+		console.log("error: ", error);
+	}
+	end_training(w1, b1, w2, b2, a2, y);
 }
 
 function iris_train_nn(){
-	read_input_file(rawData => {
-		const {x, y} = parse_input_data(rawData);
-		const {w1, b1, w2, b2} = init_weights(4,7,3);
+	const rawData = read_file('./data/iris_training.dat');	 
+	const {x, y} = parse_input_data(rawData);
+	var {w1, b1, w2, b2} = init_weights(4,7,3);
+	var a2, updated_weights;
 
-		iterate_training(x, w1, b1, w2, b2, y, 0, 1000);
-	});
+	for(var i=0; i<3000; i++){
+		updated_weights = iterate_training(x, w1, b1, w2, b2, y);
+		w1 = updated_weights.w1;
+		b1 = updated_weights.b1;
+		w2 = updated_weights.w2;
+		b2 = updated_weights.b2;
+		a2 = updated_weights.a2;
+		error = updated_weights.error;
+		console.log("error: ", error);
+
+		if(error < 0.040){
+			console.log("\t *** global error achieved. epoch:", i);
+			break;
+		}
+	}
+	end_training(w1,b1,w2,b2,a2, y);
+	fs.writeFile('error_history.txt', error_history.join('\n'), function (err) { console.log("log saved.") });
+	
+	console.log("------ validation -------");
+	compute_validation_error(w1,b1,w2,b2);
 }
 
 const fs = require('fs');
 
 function iris_train_incremental(maxEpochs=1000, mse=0.04){
-	var stop_training = false;
+	const rawData = read_file('./data/iris_training.dat');
+	const data = parse_input_data(rawData);
+	var {w1, b1, w2, b2} = init_weights(4,7,3);
+	var epoch = 0, updated_weights, local_error, batch_error;
 
-	read_input_file(rawData => {
-		const data = parse_input_data(rawData);
-		var {w1, b1, w2, b2} = init_weights(4,7,3);
-		var epoch = 0, updated_weights;
+	while(epoch < maxEpochs){	
+		let shuffled_data = shuffle_arrays(data.x, data.y);
 
-		while(epoch<maxEpochs){	
-			let shuffled_data = shuffle_arrays(data.x, data.y);
-
-			for(var i=0; i<data.y.length; i++){
-				// update weights for each data item
-				updated_weights = iterate_training_incremental([shuffled_data.x[i]], w1, b1, w2, b2, [shuffled_data.y[i]]);
-				w1 = updated_weights.w1;
-				b1 = updated_weights.b1;
-				w2 = updated_weights.w2;
-				b2 = updated_weights.b2;
-
-				/*if(updated_weights.error < 0.00000001) {
-					console.log("\t *** error achieved");
-					stop_training = true;
-					break;
-				}*/
-			}
-
-			if(stop_training) break;
-
-			epoch += 1;
+		for(var i=0; i<data.y.length; i++){
+			// update weights for each data item
+			updated_weights = iterate_training_incremental([shuffled_data.x[i]], w1, b1, w2, b2, [shuffled_data.y[i]]);
+			w1 = updated_weights.w1;
+			b1 = updated_weights.b1;
+			w2 = updated_weights.w2;
+			b2 = updated_weights.b2;
+			local_error = updated_weights.error;
+			// console.log("error: ", local_error);
 		}
 
-		const {a2} = iterate_training_incremental(data.x, w1, b1, w2, b2, data.y);
-		end_training(w1,b1,w2,b2,a2, data.y);
-		fs.writeFile('error_history.txt', error_history.join('\n'), function (err) { console.log("log saved.") });
-			
-	});
+		const y_pred = feed_forward(data.x, w1, b1, w2, b2, data.y).a2;
+		batch_error = nn_error(y_pred, data.y);
+		console.log("batch error:", batch_error);
+
+		if(batch_error < 0.040) {
+			console.log("\t *** global error achieved. epoch:", epoch);
+			break;
+		}
+
+		epoch += 1;
+	}
+
+	const {a2} = feed_forward(data.x, w1, b1, w2, b2, data.y);
+	end_training(w1,b1,w2,b2,a2, data.y);
+	fs.writeFile('error_history.txt', error_history.join('\n'), function (err) { console.log("log saved.") });
+	
+	console.log("------ validation -------");
+	compute_validation_error(w1,b1,w2,b2);
 }
 
 // test_train_nn();
